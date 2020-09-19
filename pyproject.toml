@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "botsreustacio"
+version = "0.1.0"
+description = "Bot para fazer saudações aos membros"
+authors = ["Rich <richelton14@gmail.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+"discord.py" = "^1.4.1"
+python-dotenv = "^0.14.0"
+pynacl = "^1.4.0"
+gTTS = "^2.1.1"
+
+[tool.poetry.dev-dependencies]
+autopep8 = "^1.5.4"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
