@@ -1,3 +1,6 @@
 {
-  "python.pythonPath": "/home/rickecr/.cache/pypoetry/virtualenvs/botsreustacio-hL3vUopg-py3.8/bin/python"
+  "python.formatting.provider": "autopep8",
+  "python.pythonPath": "C:\\Users\\richr\\AppData\\Local\\pypoetry\\Cache\\virtualenvs\\botsreustacio-XOZu7O5u-py3.9\\Scripts\\python.exe",
+  "python.linting.pycodestyleEnabled": true,
+  "python.linting.enabled": true
 }
