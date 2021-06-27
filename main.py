@@ -1,11 +1,14 @@
-
 import os
+import asyncio
 from time import sleep
+import databases
 
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 from gtts import gTTS
+
+from database.db import DB
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -14,34 +17,26 @@ ID_ADMIN_2 = os.getenv('ID_ADMIN_2')
 ID_ADMIN_3 = os.getenv('ID_ADMIN_3')
 
 bot = commands.Bot(command_prefix='$')
+database = DB()
 
 language = 'pt-br'
-greeting = 'O gado chegou'
+greeting_default = 'Chegou o disco voador!'
+greeting_cattle = 'O gado chegou'
 greeting_finin = 'é o finas'
 greeting_king = 'O rei chegou pessoal. Abram espaço!'
 voice_channel_conntected = None
 channel = None
 
-users_greetings = {
-    "409812660117569547": "Gordinho burro rihi"
-}
 
+def record_audio(greeting: str):
+    """
+    Method that perform record the audio with greeting of the client.
 
-def record_audio(greeting):
+    PARAMS
+        - greeting: `str` - The Greeting
+    """
     myobj = gTTS(text=greeting, lang=language, slow=False)
     myobj.save('greeting.mp3')
-
-
-def save_audio(type_greeting: str):
-    if type_greeting == 'greeting':
-        myobj = gTTS(text=greeting, lang=language, slow=False)
-        myobj.save('greeting.mp3')
-    elif type_greeting == 'greeting_king':
-        myobj = gTTS(text=greeting_king, lang=language, slow=False)
-        myobj.save('greeting_king.mp3')
-    elif type_greeting == 'greeting_finin':
-        myobj = gTTS(text=greeting_finin, lang=language, slow=False)
-        myobj.save('greeting_finin.mp3')
 
 
 @bot.event
@@ -49,36 +44,31 @@ async def on_voice_state_update(client, before, after):
     try:
         roles_in_user = list(
             filter(lambda role: role.name == 'GADO', client.roles))
-        record_audio(users_greetings[str(client.id)])
-        voice_channel_conntected.play(discord.FFmpegPCMAudio(
-            executable="ffmpeg.exe",
-            source="greeting.mp3"))
+        greetings = await database.get_greetings(where={
+            'id_user': client.id
+        })
+        if roles_in_user:
+            record_audio(greeting_cattle)
+        elif greetings:
+            # TODO: User can have multiple greetings
+            #           - Draw the greeting ?
+            greeting = greetings[0].greeting
+            record_audio(greeting)
+        else:
+            record_audio(greeting_default)
 
-        # if (str(client.id) == ID_ADMIN_3):
-        #     sleep(1.5)
-        #     voice_channel_conntected.play(discord.FFmpegPCMAudio(
-        #         executable="ffmpeg.exe",
-        #         source="greeting_finin.mp3"))
-        # elif str(client.id) in [ID_ADMIN, ID_ADMIN_2]:
-        #     sleep(1.5)
-        #     voice_channel_conntected.play(discord.FFmpegPCMAudio(
-        #         executable="ffmpeg.exe",
-        #         source="greeting_king.mp3"))
-        # elif roles_in_user:
-        #     sleep(1.5)
-        #     voice_channel_conntected.play(discord.FFmpegPCMAudio(
-        #         executable="ffmpeg.exe",
-        #         source="greeting.mp3"))
-        # await client.guild.system_channel.send('Pegamos um gado :)')
-
+        sleep(1.5)
+        voice_channel_conntected.play(
+            source=discord.FFmpegPCMAudio(
+                executable="ffmpeg.exe",
+                source="greeting.mp3"),
+            after=lambda error: os.remove('greeting.mp3'))
     except Exception as ex:
-        # msg = 'O meu desenvolvedor fez alguma merda! Ou foi você ? :´)'
-        # await client.guild.system_channel.send(msg)
         print("Ocorreu alguma coisinha: {}".format(ex))
 
 
 @bot.command(name="vem-aqui", help="Entrar em um canal de voz")
-async def entrar_canal_voz(client):
+async def enter_voice_chat(client):
     global voice_channel_conntected, channel
     author = client.message.author
     channel = author.voice.channel
@@ -86,44 +76,41 @@ async def entrar_canal_voz(client):
 
 
 @bot.command(name="salva-saudacao", help="Salvar a saudação dos reis")
-async def save_greeting(client, greeting_user):
-    users_greetings[str(client.author.id)] = greeting_user
+async def save_greeting(client, greeting_user: str):
+    try:
+        if len(greeting_user) < 2:
+            await client.send("A saudação deve ter mais de 2 letras! :(")
+        else:
+            author = client.author
+            await database.add_user(id=author.id, name=author.name)
+            await database.add_greeting(greeting=greeting_user,
+                                        id_user=author.id)
+    except Exception:
+        msg = "Aconteceu alguma coisa inesperada hein :(\nChama o SUPORTE"
+        await client.send(msg)
 
 
 @bot.command(name="saudacao", help="Qual a saudação salva")
-async def get_saudacao(client):
-    greeting = users_greetings[str(client.author.id)]
-    await client.send("A saudação salva é {0}".format(greeting))
+async def get_greeting(client):
+    greetings = await database.get_greetings(where={
+        'id_user': client.author.id
+    })
+    greeting = greetings[0].greeting
+    await client.send("A sua Sr. {} saudação salva é {}".format(
+        client.author.name, greeting))
 
 
 @bot.command(name="sai-daqui", help="Sair do canal de voz")
 async def leave(client):
     await client.voice_client.disconnect()
 
-# @bot.command(name="salva-saudacao-rei", help="Salvar a saudação dos reis")
-# async def salvar_saudacao_rei(client, greeting_king_):
-#     print(client.author.id)
-#     if str(client.author.id) in [ID_ADMIN, ID_ADMIN_2]:
-#         global greeting_king
-#         greeting_king = greeting_king_
-#         myobj = gTTS(text=greeting_king, lang=language, slow=False)
-#         myobj.save('greeting_king.mp3')
-#         await client.send("Saudação salva!")
-#     else:
-#         await client.send("Ei {0} tu é doido é ? Tá achando que é o Rei Rich".
-#                           format(client.author.name))
 
+async def main():
+    await database.connect()
+    await database.create_table_user()
+    await database.create_table_greeting()
 
-# @bot.command(name="salva-saudacao", help="Salvar a saudação")
-# async def salvar_saudacao(client, greeting_):
-#     if str(client.author.id) in [ID_ADMIN, ID_ADMIN_2]:
-#         global greeting
-#         greeting = greeting_
-#         myobj = gTTS(text=greeting, lang=language, slow=False)
-#         myobj.save('greeting.mp3')
-#         await client.send("Saudação salva!")
-#     else:
-#         await client.send("Ei {0} tu é doido é ? Tá achando que é o Rei Rich".
-#                           format(client.author.name))
+asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+asyncio.run(main())
 
 bot.run(TOKEN)

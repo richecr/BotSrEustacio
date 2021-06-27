@@ -1,3 +1,5 @@
 .env
 greeting_king.mp3
 greeting.mp3
+bot_sr_eustacio.db
+__pycache__/
