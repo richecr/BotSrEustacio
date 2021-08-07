@@ -122,6 +122,23 @@ docs = ["sphinx (==3.0.3)", "sphinxcontrib-trio (==1.1.2)", "sphinxcontrib-websu
 voice = ["PyNaCl (>=1.3.0,<1.5)"]
 
 [[package]]
+name = "duck-orm"
+version = "0.1.0"
+description = "DuckORM is package is an asynchronous ORM for Python"
+category = "main"
+optional = false
+python-versions = ">=3.8"
+
+[package.dependencies]
+databases = ">=0.4.3"
+sqlalchemy = ">=1.3.24"
+
+[package.extras]
+postgresql = ["asyncpg"]
+postgresql_aiopg = ["aiopg"]
+sqlite = ["aiosqlite"]
+
+[[package]]
 name = "gtts"
 version = "2.2.3"
 description = "gTTS (Google Text-to-Speech), a Python library and CLI tool to interface with Google Translate text-to-speech API"
@@ -252,7 +269,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "79b7dbad9f828d650b3cb50396515274bc7716f4569e3e4a46d180c75167928e"
+content-hash = "aa3fa009c0ca6a635e8e43bedf211fedb5dd303a026b0be1b74cbf3f09e4259f"
 
 [metadata.files]
 aiohttp = [
@@ -376,6 +393,10 @@ databases = [
 "discord.py" = [
     {file = "discord.py-1.7.3-py3-none-any.whl", hash = "sha256:c6f64db136de0e18e090f6752ea68bdd4ab0a61b82dfe7acecefa22d6477bb0c"},
     {file = "discord.py-1.7.3.tar.gz", hash = "sha256:462cd0fe307aef8b29cbfa8dd613e548ae4b2cb581d46da9ac0d46fb6ea19408"},
+]
+duck-orm = [
+    {file = "duck-orm-0.1.0.tar.gz", hash = "sha256:0dfb12dca76a078830cc091096f796634272438691de98e517a2294337fe9fa0"},
+    {file = "duck_orm-0.1.0-py3-none-any.whl", hash = "sha256:3c0c81f337ab82afd6a7d6e4615d6839068001aa1ee1143ec38f47bbcce9fc96"},
 ]
 gtts = [
     {file = "gTTS-2.2.3-py3-none-any.whl", hash = "sha256:8376d9bde85ac8cda95ea92dcd12bf31a3efe9e810edcb04437a4151cbec30d6"},

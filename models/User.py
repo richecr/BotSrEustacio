@@ -1,6 +1,12 @@
-from models.Model import Model
+from duck_orm.model import Model
+from duck_orm.sql import fields as Field
+
+from database.db import database
 
 
 class User(Model):
-    id: int = None
-    name: str = None
+    __tablename__ = 'users'
+    __db__ = database.db
+
+    id: int = Field.Integer(primary_key=True)
+    name: str = Field.String(not_null=True)

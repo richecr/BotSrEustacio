@@ -1,14 +1,16 @@
 import os
 import asyncio
 from time import sleep
-import databases
 
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
+from duck_orm.sql.condition import Condition
 from gtts import gTTS
 
-from database.db import DB
+from database.db import database
+from models.User import User
+from models.Greeting import Greeting
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -17,7 +19,6 @@ ID_ADMIN_2 = os.getenv('ID_ADMIN_2')
 ID_ADMIN_3 = os.getenv('ID_ADMIN_3')
 
 bot = commands.Bot(command_prefix='$')
-database = DB()
 
 language = 'pt-br'
 greeting_default = 'Chegou o disco voador!'
@@ -44,9 +45,9 @@ async def on_voice_state_update(client, before, after):
     try:
         roles_in_user = list(
             filter(lambda role: role.name == 'GADO', client.roles))
-        greetings = await database.get_greetings(where={
-            'id_user': client.id
-        })
+        greetings = await Greeting.find_all(conditions=[
+            Condition('id_user', '=', client.id)
+        ])
         if roles_in_user:
             record_audio(greeting_cattle)
         elif greetings:
@@ -82,9 +83,11 @@ async def save_greeting(client, greeting_user: str):
             await client.send("A saudação deve ter mais de 2 letras! :(")
         else:
             author = client.author
-            await database.add_user(id=author.id, name=author.name)
-            await database.add_greeting(greeting=greeting_user,
-                                        id_user=author.id)
+            await User.save(User(id=author.id, name=author.name))
+            await Greeting.save(
+                Greeting(greeting=greeting_user, id_user=author.id))
+            msg = f"A saudação {greeting_user} foi salva, Sr(a). {author.name}"
+            await client.send(msg)
     except Exception:
         msg = "Aconteceu alguma coisa inesperada hein :(\nChama o SUPORTE"
         await client.send(msg)
@@ -92,12 +95,16 @@ async def save_greeting(client, greeting_user: str):
 
 @bot.command(name="saudacao", help="Qual a saudação salva")
 async def get_greeting(client):
-    greetings = await database.get_greetings(where={
-        'id_user': client.author.id
-    })
-    greeting = greetings[0].greeting
-    await client.send("A sua Sr. {} saudação salva é {}".format(
-        client.author.name, greeting))
+    try:
+        greetings = await Greeting.find_all(conditions=[
+            Condition('id_user', '=', client.author.id)
+        ])
+        greeting = greetings[0].greeting
+        await client.send("A sua Sr. {} saudação salva é {}".format(
+            client.author.name, greeting))
+    except Exception:
+        msg = "Sem saudação encontrada. Tu tem quem adicionar antes Mula e eu não vou dizer qual o comando!"
+        await client.send(msg)
 
 
 @bot.command(name="sai-daqui", help="Sair do canal de voz")
@@ -107,8 +114,8 @@ async def leave(client):
 
 async def main():
     await database.connect()
-    await database.create_table_user()
-    await database.create_table_greeting()
+    await User.create()
+    await Greeting.create()
 
 asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 asyncio.run(main())
