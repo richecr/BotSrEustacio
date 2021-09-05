@@ -40,30 +40,40 @@ def record_audio(greeting: str):
     myobj.save('greeting.mp3')
 
 
+def new_user_connected_channel(client, before_channel, after_channel):
+    try:
+        if (before_channel.members.__contains__(client) and
+                after_channel.members.__contains__(client)):
+            return False
+    except Exception:
+        return True
+
+
 @bot.event
 async def on_voice_state_update(client, before, after):
     try:
-        roles_in_user = list(
-            filter(lambda role: role.name == 'GADO', client.roles))
-        greetings = await Greeting.find_all(conditions=[
-            Condition('id_user', '=', client.id)
-        ])
-        if roles_in_user:
-            record_audio(greeting_cattle)
-        elif greetings:
-            # TODO: User can have multiple greetings
-            #           - Draw the greeting ?
-            greeting = greetings[0].greeting
-            record_audio(greeting)
-        else:
-            record_audio(greeting_default)
+        if new_user_connected_channel(client, before.channel, after.channel):
+            roles_in_user = list(
+                filter(lambda role: role.name == 'GADO', client.roles))
+            greetings = await Greeting.find_all(conditions=[
+                Condition('id_user', '=', client.id)
+            ])
+            if roles_in_user:
+                record_audio(greeting_cattle)
+            elif greetings:
+                # TODO: User can have multiple greetings
+                #           - Draw the greeting ?
+                greeting = greetings[0].greeting
+                record_audio(greeting)
+            else:
+                record_audio(greeting_default)
 
-        sleep(1.5)
-        voice_channel_conntected.play(
-            source=discord.FFmpegPCMAudio(
-                executable="ffmpeg.exe",
-                source="greeting.mp3"),
-            after=lambda error: os.remove('greeting.mp3'))
+            sleep(1.5)
+            voice_channel_conntected.play(
+                source=discord.FFmpegPCMAudio(
+                    executable="ffmpeg.exe",
+                    source="greeting.mp3"),
+                after=lambda error: os.remove('greeting.mp3'))
     except Exception as ex:
         print("Ocorreu alguma coisinha: {}".format(ex))
 
