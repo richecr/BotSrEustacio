@@ -105,9 +105,7 @@ async def get_greeting(client):
             conditions=[Condition("id_user", "=", str(client.author.id))]
         )
         greeting = greetings[0].greeting
-        await client.send(
-            "A sua Sr. {} saudação salva é {}".format(client.author.name, greeting)
-        )
+        await client.send(f"A sua Sr. {client.author.name} saudação salva é {greeting}")
     except Exception:
         msg = "Sem saudação encontrada. Tu tem quem adicionar antes Mula e eu não vou dizer qual o comando!"
         await client.send(msg)
