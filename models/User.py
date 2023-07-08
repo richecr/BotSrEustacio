@@ -5,8 +5,8 @@ from database.db import database
 
 
 class User(Model):
-    __tablename__ = 'users'
+    __tablename__ = "users"
     __db__ = database.db
 
-    id: int = Field.Integer(primary_key=True)
+    id: str = Field.String(primary_key=True)
     name: str = Field.String(not_null=True)

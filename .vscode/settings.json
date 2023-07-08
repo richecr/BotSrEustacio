@@ -1,6 +1,9 @@
 {
-  "python.formatting.provider": "autopep8",
-  "python.pythonPath": "C:\\Users\\richr\\AppData\\Local\\pypoetry\\Cache\\virtualenvs\\botsreustacio-XOZu7O5u-py3.9\\Scripts\\python.exe",
+  "python.defaultInterpreterPath": "C:\\Users\\richr\\AppData\\Local\\pypoetry\\Cache\\virtualenvs\\botsreustacio-XOZu7O5u-py3.9\\Scripts\\python.exe",
+  "python.formatting.provider": "none",
   "python.linting.pycodestyleEnabled": true,
-  "python.linting.enabled": true
+  "python.linting.enabled": true,
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  }
 }
